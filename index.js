@@ -66,6 +66,12 @@ app.post('/api/persons', (request, response) => {
             error: 'Key Missing: number'
         })
     }
+
+    if (persons.find(person => person.name === body.name)) {
+        return response.status(400).json({
+            error: `${body.name} already exists in phonebook`
+        })
+    }
     const person = {
         id: Math.floor(Math.random() * Math.floor(32768)),
         name: body.name,
