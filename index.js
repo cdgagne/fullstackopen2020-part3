@@ -4,6 +4,9 @@ const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
 
+// Enable the static middleware to serve a React front-end
+app.use(express.static('build'))
+
 // Enable the JSON middleware to automatically parse JSON requests
 app.use(express.json())
 
