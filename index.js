@@ -1,9 +1,14 @@
 const { response } = require('express')
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 const app = express()
 
+// Enable the JSON middleware to automatically parse JSON requests
 app.use(express.json())
+
+// Enable CORS middleware for XHR
+app.use(cors())
 
 // Use Morgan for logging requests and define a custom token to allow logging of the request body
 morgan.token('req-body', (req, res) =>
