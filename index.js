@@ -1,7 +1,10 @@
+require('dotenv').config()
 const { response } = require('express')
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
+
 const app = express()
 
 // Enable the static middleware to serve a React front-end
@@ -19,47 +22,28 @@ morgan.token('req-body', (req, res) =>
 )
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req-body'))
 
-let persons = [
-    {
-        id: 1,
-        name: "Arto Hellas",
-        number: "040-123456"
-    },
-    {
-        id: 2,
-        name: "Ada Lovelace",
-        number: "39-44-5323523",
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        number: "12-43-234345",
-    },
-    {
-        id: 4,
-        name: "Mary Poppendieck",
-        number: "39-23-643122"
-    }
-]
-
 app.get('/info', (request, response) => {
-    const phonebook_length = `<p>Phonebook has info for ${persons.length} people</p>`
-    const now = `<p>${Date()}</p>`
-    response.send(phonebook_length + now)
+    Person.find({})
+        .then(persons => {
+            const phonebook_length = `<p>Phonebook has info for ${persons.length} people</p>`
+            const now = `<p>${Date()}</p>`
+            response.send(phonebook_length + now)
+        })
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({})
+        .then(persons => {
+            response.json(persons)
+        })
 })
 
 app.get('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
+    Person.findById(id)
+        .then(person => {
+            response.json(person)
+        })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -82,21 +66,16 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    if (persons.find(person => person.name === body.name)) {
-        return response.status(400).json({
-            error: `${body.name} already exists in phonebook`
-        })
-    }
-    const person = {
-        id: Math.floor(Math.random() * Math.floor(32768)),
+    const person = new Person({
         name: body.name,
         number: body.number
-    }
-    persons = persons.concat(person)
-    return response.json(person)
+    })
+    person.save().then(savedPerson => {
+        return response.json(savedPerson)
+    })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
