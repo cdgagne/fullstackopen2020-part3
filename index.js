@@ -22,38 +22,51 @@ morgan.token('req-body', (req, res) =>
 )
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req-body'))
 
-app.get('/info', (request, response) => {
+// Routes
+// Info route to display the number of persons in the phonebook
+app.get('/info', (request, response, next) => {
     Person.find({})
         .then(persons => {
             const phonebook_length = `<p>Phonebook has info for ${persons.length} people</p>`
             const now = `<p>${Date()}</p>`
             response.send(phonebook_length + now)
         })
+        .catch(error => next(error))
 })
 
-app.get('/api/persons', (request, response) => {
+// Return a list of all persons objects in the phonebook
+app.get('/api/persons', (request, response, next) => {
     Person.find({})
         .then(persons => {
             response.json(persons)
         })
+        .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    Person.findById(id)
+// Return a specfic person object from the phonebook
+app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id)
         .then(person => {
-            response.json(person)
+            if (person) {
+                response.json(person)
+            } else {
+                response.status(404).end()
+            }
         })
+        .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-    
-    response.status(204).end()
+// Remove a specific person object from the phonebook
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndRemove(request.params.id)
+        .then(result => {
+            response.status(204).end()
+        })
+        .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+// Add a new person object to the phonebook
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
     if (!body.name) {
         return response.status(400).json({
@@ -70,11 +83,34 @@ app.post('/api/persons', (request, response) => {
         name: body.name,
         number: body.number
     })
-    person.save().then(savedPerson => {
-        return response.json(savedPerson)
-    })
+    person.save()
+        .then(savedPerson => {
+            return response.json(savedPerson)
+        })
+        .catch(error => next(error))
 })
 
+// Catch all route for endpoints not matching any above
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint'})
+}
+app.use(unknownEndpoint)
+
+// A generic error handler
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+    console.log('error name', error.name)
+
+    // MongoDB CastError
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformed id' })
+    }
+
+    next(error)
+}
+app.use(errorHandler)
+
+// Start the node server
 const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
