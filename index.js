@@ -114,11 +114,12 @@ app.use(unknownEndpoint)
 // A generic error handler
 const errorHandler = (error, request, response, next) => {
     console.error(error.message)
-    console.log('error name', error.name)
 
     // MongoDB CastError
     if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformed id' })
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).send({ error: error.message })
     }
 
     next(error)
