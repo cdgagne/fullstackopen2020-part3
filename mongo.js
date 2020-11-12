@@ -4,9 +4,9 @@ const mongoose = require('mongoose')
 const usage = () => {
     console.log('Invalid arguments. Usage:')
     console.log('List phonebook entries:')
-    console.log(`node mongo.js <password>`)
+    console.log('node mongo.js <password>')
     console.log('Add phonebook entry:')
-    console.log(`node mongo.js <password> <name> <number>`)
+    console.log('node mongo.js <password> <name> <number>')
 }
 
 // A mongo person schema
@@ -33,7 +33,7 @@ const listPhonebook = () => {
 const addToPhonebook = (name, number) => {
     const person = new Person({
         name: name,
-        number: number 
+        number: number
     })
 
     person.save().then(result => {

@@ -1,5 +1,4 @@
 require('dotenv').config()
-const { response } = require('express')
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
@@ -107,7 +106,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 // Catch all route for endpoints not matching any above
 const unknownEndpoint = (request, response) => {
-    response.status(404).send({ error: 'unknown endpoint'})
+    response.status(404).send({ error: 'unknown endpoint' })
 }
 app.use(unknownEndpoint)
 
